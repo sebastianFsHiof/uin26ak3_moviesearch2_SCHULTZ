@@ -1,5 +1,9 @@
 export function createSlug(title) {
-  return title.toLowerCase().replace(/\s+/g, "-")
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
 }
 
 export function slugToTitle(slug) {

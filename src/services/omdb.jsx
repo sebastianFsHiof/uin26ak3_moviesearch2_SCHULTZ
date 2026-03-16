@@ -1,27 +1,44 @@
 const API_KEY = import.meta.env.VITE_APP_API_KEY
-const URL = "https://www.omdbapi.com/"
+const BASE_URL = "https://www.omdbapi.com/"
 
-export async function searchMovies(title) {
-  const res = await fetch(`${URL}?apikey=${API_KEY}&s=${title}`)
-  const data = await res.json()
+export async function searchMoviesByTitle(query) {
+  const response = await fetch(
+    `${BASE_URL}?apikey=${API_KEY}&s=${encodeURIComponent(query)}&type=movie`
+  )
 
-  if (data.Response === "False") return []
+  const data = await response.json()
+
+  if (data.Response === "False") {
+    return []
+  }
 
   return data.Search
 }
 
-export async function getMovie(title) {
-  const res = await fetch(`${URL}?apikey=${API_KEY}&t=${title}`)
-  const data = await res.json()
+export async function getMovieByTitle(title) {
+  const response = await fetch(
+    `${BASE_URL}?apikey=${API_KEY}&t=${encodeURIComponent(title)}&plot=full`
+  )
+
+  const data = await response.json()
+
+  if (data.Response === "False") {
+    return null
+  }
 
   return data
 }
 
-export async function getBondMovies() {
-  const res = await fetch(`${URL}?apikey=${API_KEY}&s=james bond`)
-  const data = await res.json()
+export async function getDefaultBondMovies() {
+  const response = await fetch(
+    `${BASE_URL}?apikey=${API_KEY}&s=${encodeURIComponent("James Bond")}&type=movie&page=1`
+  )
 
-  if (data.Response === "False") return []
+  const data = await response.json()
+
+  if (data.Response === "False") {
+    return []
+  }
 
   return data.Search.slice(0, 10)
 }

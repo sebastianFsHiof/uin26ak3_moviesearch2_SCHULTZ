@@ -1,51 +1,66 @@
 import { useEffect, useState } from "react"
 import SearchBar from "../components/SearchBar.jsx"
 import MovieList from "../components/MovieList.jsx"
-import { getBondMovies, searchMovies } from "../services/omdb.jsx"
+import { getDefaultBondMovies, searchMoviesByTitle } from "../services/omdb.jsx"
 
 export default function Home() {
-
-  const [search, setSearch] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
   const [movies, setMovies] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [headline, setHeadline] = useState("James Bond-filmer")
 
   useEffect(() => {
-    loadBond()
-  }, [])
-
-  async function loadBond() {
-    const data = await getBondMovies()
-    setMovies(data)
-  }
-
-  async function handleSearch(e) {
-
-    const value = e.target.value
-    setSearch(value)
-
-    if (value.length < 3) {
-      loadBond()
-      return
+    async function loadDefaultMovies() {
+      setIsLoading(true)
+      const bondMovies = await getDefaultBondMovies()
+      setMovies(bondMovies)
+      setHeadline("James Bond-filmer")
+      setIsLoading(false)
     }
 
-    const results = await searchMovies(value)
-    setMovies(results)
+    loadDefaultMovies()
+  }, [])
+
+  useEffect(() => {
+    async function loadMovies() {
+      if (searchTerm.trim().length < 3) {
+        const bondMovies = await getDefaultBondMovies()
+        setMovies(bondMovies)
+        setHeadline("James Bond-filmer")
+        setIsLoading(false)
+        return
+      }
+
+      setIsLoading(true)
+      const results = await searchMoviesByTitle(searchTerm)
+      setMovies(results)
+      setHeadline(`Søkeresultater for "${searchTerm}"`)
+      setIsLoading(false)
+    }
+
+    loadMovies()
+  }, [searchTerm])
+
+  function handleChange(event) {
+    setSearchTerm(event.target.value)
   }
 
   return (
-    <main>
-
-      <header>
+    <main className="page-layout">
+      <header className="page-header">
         <h1>Movie Search</h1>
+        <p>Finn filmer med OMDb API</p>
       </header>
 
-      <section>
-        <SearchBar value={search} onChange={handleSearch} />
+      <section aria-labelledby="search-heading">
+        <h2 id="search-heading">Søk</h2>
+        <SearchBar value={searchTerm} onChange={handleChange} />
       </section>
 
-      <section>
-        <MovieList movies={movies} />
+      <section aria-labelledby="movie-list-heading">
+        <h2 id="movie-list-heading">{headline}</h2>
+        {isLoading ? <p>Laster filmer...</p> : <MovieList movies={movies} />}
       </section>
-
     </main>
   )
 }

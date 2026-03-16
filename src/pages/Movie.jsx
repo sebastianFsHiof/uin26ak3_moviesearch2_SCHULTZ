@@ -1,56 +1,88 @@
-import { useParams, Link } from "react-router-dom"
 import { useEffect, useState } from "react"
-import { getMovie } from "../services/omdb.jsx"
+import { Link, useParams } from "react-router-dom"
+import { getMovieByTitle } from "../services/omdb.jsx"
 import { slugToTitle } from "../utils/slug.jsx"
 
 export default function Movie() {
-
   const { movie } = useParams()
-  const [data, setData] = useState(null)
+  const [movieData, setMovieData] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-
-    async function load() {
-      const title = slugToTitle(movie)
-      const result = await getMovie(title)
-      setData(result)
+    async function loadMovie() {
+      setIsLoading(true)
+      const titleFromSlug = slugToTitle(movie)
+      const data = await getMovieByTitle(titleFromSlug)
+      setMovieData(data)
+      setIsLoading(false)
     }
 
-    load()
-
+    loadMovie()
   }, [movie])
 
-  if (!data) {
+  if (isLoading) {
     return (
-      <main>
-        <p>Loading...</p>
+      <main className="page-layout">
+        <p>Laster film...</p>
+      </main>
+    )
+  }
+
+  if (!movieData) {
+    return (
+      <main className="page-layout">
+        <header className="page-header">
+          <h1>Film ikke funnet</h1>
+        </header>
+
+        <nav aria-label="Tilbake til forsiden">
+          <Link to="/" className="back-link">
+            Til forsiden
+          </Link>
+        </nav>
       </main>
     )
   }
 
   return (
-    <main>
-
-      <header>
-        <h1>{data.Title}</h1>
+    <main className="page-layout">
+      <header className="page-header">
+        <h1>{movieData.Title}</h1>
+        <p>
+          {movieData.Year} · {movieData.Genre}
+        </p>
       </header>
 
-      <nav>
-        <Link to="/">Back</Link>
+      <nav aria-label="Tilbake til forsiden">
+        <Link to="/" className="back-link">
+          Til forsiden
+        </Link>
       </nav>
 
-      <section>
+      <section aria-labelledby="movie-details-heading" className="movie-detail">
+        <h2 id="movie-details-heading">Filminformasjon</h2>
 
-        {data.Poster !== "N/A"
-          ? <img src={data.Poster} alt={data.Title}/>
-          : <p>No poster</p>
-        }
+        {movieData.Poster !== "N/A" ? (
+          <img
+            src={movieData.Poster}
+            alt={`Filmplakat for ${movieData.Title}`}
+            className="detail-poster"
+          />
+        ) : (
+          <p>Ingen plakat tilgjengelig.</p>
+        )}
 
-        <p>{data.Plot}</p>
-        <p>{data.Year}</p>
-
+        <p>{movieData.Plot}</p>
+        <p>
+          <strong>Regissør:</strong> {movieData.Director}
+        </p>
+        <p>
+          <strong>Skuespillere:</strong> {movieData.Actors}
+        </p>
+        <p>
+          <strong>IMDb-rating:</strong> {movieData.imdbRating}
+        </p>
       </section>
-
     </main>
   )
 }

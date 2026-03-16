@@ -1,13 +1,14 @@
 export default function SearchBar({ value, onChange }) {
   return (
-    <form role="search">
-      <label htmlFor="search">Search movie</label>
+    <form role="search" className="search-form">
+      <label htmlFor="movie-search">Søk etter film</label>
       <input
-        id="search"
+        id="movie-search"
+        name="movie-search"
         type="search"
         value={value}
         onChange={onChange}
-        placeholder="Type at least 3 letters"
+        placeholder="Skriv minst 3 tegn..."
       />
     </form>
   )
